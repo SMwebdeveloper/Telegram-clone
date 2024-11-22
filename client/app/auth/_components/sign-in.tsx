@@ -13,15 +13,18 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
 
 const SignIn = () => {
+  const { setStep, setEmail } = useAuth();
   const form = useForm<z.infer<typeof emailScheme>>({
     resolver: zodResolver(emailScheme),
     defaultValues: { email: "" },
   });
 
   function onSubmit(values: z.infer<typeof emailScheme>) {
-    console.log(values);
+    setStep("verify");
+    setEmail(values.email);
   }
   return (
     <div className="w-full">
