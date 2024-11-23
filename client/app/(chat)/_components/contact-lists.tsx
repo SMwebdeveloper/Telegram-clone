@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import useCurrentContact from "@/hooks/use-current";
+import { useCurrentContact } from "@/hooks/use-current";
 import { IUser } from "@/index";
 import { cn } from "@/lib/utils";
 import { Settings } from "lucide-react";
@@ -14,6 +14,7 @@ interface Props {
 const ContactLists: FC<Props> = ({ contacts }) => {
   const router = useRouter();
   const { currentContact, setCurrentContact } = useCurrentContact();
+
   const renderContact = (contact: IUser) => {
     const onChat = () => {
       if (currentContact?._id === contact._id) return console.log(1);

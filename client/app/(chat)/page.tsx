@@ -1,8 +1,32 @@
+"use client";
 import { Loader2 } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import ContactLists from "./_components/contact-lists";
+import { useCurrentContact } from "@/hooks/use-current";
+import { useRouter } from "next/navigation";
+import AddContact from "./_components/add-contact";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { emailScheme } from "@/lib/validations";
+import { zodResolver } from "@hookform/resolvers/zod";
+import TopChat from "./_components/top-chat";
+import Chat from "./_components/chat";
 
 const Page = () => {
+  const { currentContact, setCurrentContact } = useCurrentContact();
+  const router = useRouter();
+
+  const contactForm = useForm<z.infer<typeof emailScheme>>({
+    resolver: zodResolver(emailScheme),
+    defaultValues: { email: "" },
+  });
+  useEffect(() => {
+    router.replace("/");
+  }, []);
+
+  const onCreateContact = (values: z.infer<typeof emailScheme>) => {
+    console.log(values);
+  };
   return (
     <>
       {/* Sidebar */}
@@ -15,14 +39,31 @@ const Page = () => {
         {/* Contact lists */}
         <ContactLists contacts={contacts} />
       </div>
+
+      {/* Chat area */}
+      <div className="pl-80 w-full">
+        {!currentContact?._id && (
+          <AddContact
+            contactForm={contactForm}
+            onCreateContact={onCreateContact}
+          />
+        )}
+        {currentContact?._id && (
+          <div className="w-full relative">
+            <TopChat />
+            {/* Chat */}
+            <Chat />
+          </div>
+        )}
+      </div>
     </>
   );
 };
 
 const contacts = [
-  { email: "binasa@gmail.com", _id: 1 },
-  { email: "haligi@gmail.com", _id: 2 },
-  { email: "osha@gmail.com", _id: 3 },
-  { email: "nimadir@gmail.com", _id: 4 },
+  { email: "binasa@gmail.com", _id: 1, avatar: "" },
+  { email: "haligi@gmail.com", _id: 2, avatar: "" },
+  { email: "osha@gmail.com", _id: 3, avatar: "" },
+  { email: "nimadir@gmail.com", _id: 4, avatar: "" },
 ];
 export default Page;
