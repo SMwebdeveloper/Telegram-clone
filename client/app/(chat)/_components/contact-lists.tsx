@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { useCurrentContact } from "@/hooks/use-current";
 import { IUser } from "@/index";
 import { cn } from "@/lib/utils";
-import { Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { FC } from "react";
+import Settings from "./settings";
 interface Props {
   contacts: IUser[];
 }

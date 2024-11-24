@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { messageScheme } from "@/lib/validations";
+import { messageSchema } from "@/lib/validation";
 import { Paperclip, Send, Smile } from "lucide-react";
 import { FC, useRef } from "react";
 import { UseFormReturn } from "react-hook-form";
@@ -19,8 +19,8 @@ import {
 import { useTheme } from "next-themes";
 
 interface Props {
-  messageForm: UseFormReturn<z.infer<typeof messageScheme>>;
-  onSendMessage: (message: z.infer<typeof messageScheme>) => void;
+  messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
+  onSendMessage: (message: z.infer<typeof messageSchema>) => void;
 }
 const Chat: FC<Props> = ({ messageForm, onSendMessage }) => {
   const { resolvedTheme } = useTheme();

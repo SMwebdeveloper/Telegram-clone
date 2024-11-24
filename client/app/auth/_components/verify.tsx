@@ -15,7 +15,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/use-auth";
-import { otpScheme } from "@/lib/validations";
+import { otpSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import React from "react";
@@ -24,12 +24,12 @@ import { z } from "zod";
 
 const Verify = () => {
   const { email } = useAuth();
-  const form = useForm<z.infer<typeof otpScheme>>({
-    resolver: zodResolver(otpScheme),
+  const form = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
     defaultValues: { email, otp: "" },
   });
 
-  function onSubmit(values: z.infer<typeof otpScheme>) {
+  function onSubmit(values: z.infer<typeof otpSchema>) {
     console.log(values);
     window.open("/", "_self");
   }

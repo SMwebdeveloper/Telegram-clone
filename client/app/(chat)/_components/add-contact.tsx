@@ -9,15 +9,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { emailScheme } from "@/lib/validations";
+import { emailSchema } from "@/lib/validation";
 import { FC } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { FaTelegram } from "react-icons/fa";
 import { z } from "zod";
 
 interface Props {
-  contactForm: UseFormReturn<z.infer<typeof emailScheme>>;
-  onCreateContact: (values: z.infer<typeof emailScheme>) => void;
+  contactForm: UseFormReturn<z.infer<typeof emailSchema>>;
+  onCreateContact: (values: z.infer<typeof emailSchema>) => void;
 }
 const AddContact: FC<Props> = ({ contactForm, onCreateContact }) => {
   return (

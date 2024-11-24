@@ -1,4 +1,4 @@
-import { emailScheme } from "@/lib/validations";
+import { emailSchema } from "@/lib/validation";
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,12 +17,12 @@ import { useAuth } from "@/hooks/use-auth";
 
 const SignIn = () => {
   const { setStep, setEmail } = useAuth();
-  const form = useForm<z.infer<typeof emailScheme>>({
-    resolver: zodResolver(emailScheme),
+  const form = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
     defaultValues: { email: "" },
   });
 
-  function onSubmit(values: z.infer<typeof emailScheme>) {
+  function onSubmit(values: z.infer<typeof emailSchema>) {
     setStep("verify");
     setEmail(values.email);
   }
