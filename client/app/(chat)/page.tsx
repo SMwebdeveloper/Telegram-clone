@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import AddContact from "./_components/add-contact";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { emailScheme } from "@/lib/validations";
+import { emailScheme, messageScheme } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import TopChat from "./_components/top-chat";
 import Chat from "./_components/chat";
@@ -20,11 +20,19 @@ const Page = () => {
     resolver: zodResolver(emailScheme),
     defaultValues: { email: "" },
   });
+  const messageForm = useForm<z.infer<typeof messageScheme>>({
+    resolver: zodResolver(messageScheme),
+    defaultValues: { message: "", image: "" },
+  });
   useEffect(() => {
     router.replace("/");
   }, []);
 
   const onCreateContact = (values: z.infer<typeof emailScheme>) => {
+    console.log(values);
+  };
+
+  const onSendMessage = (values: z.infer<typeof messageScheme>) => {
     console.log(values);
   };
   return (
@@ -52,7 +60,7 @@ const Page = () => {
           <div className="w-full relative">
             <TopChat />
             {/* Chat */}
-            <Chat />
+            <Chat messageForm={messageForm} onSendMessage={onSendMessage} />
           </div>
         )}
       </div>
@@ -65,5 +73,11 @@ const contacts = [
   { email: "haligi@gmail.com", _id: 2, avatar: "" },
   { email: "osha@gmail.com", _id: 3, avatar: "" },
   { email: "nimadir@gmail.com", _id: 4, avatar: "" },
+];
+const messages = [
+  { text: "Hello", _id: 1 },
+  { text: "nimadir", _id: 2 },
+  { text: "osha", _id: 3 },
+  { text: "nimadir", _id: 4 },
 ];
 export default Page;
