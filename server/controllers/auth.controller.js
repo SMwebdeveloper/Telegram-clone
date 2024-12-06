@@ -1,16 +1,18 @@
 const BaseError = require("../errors/base.error")
 const userModal = require("../models/user.models")
+const mailService = require("../service/mail.service")
 class AuthController {
     async login(req, res, next) {
         try {
             const { email } = req.body
-            const existUser = await userModal.findOne({ email })
+            await mailService.sendOtp(email)
+            // const existUser = await userModal.findOne({ email })
 
-            if (existUser) {
-                throw BaseError.BadRequest("User already exist", [{ email: "User already exist" }])
-            }
-            const createUser = await userModal.create({ email })
-            res.status(201).json(createUser)
+            // if (existUser) {
+            //     throw BaseError.BadRequest("User already exist", [{ email: "User already exist" }])
+            // }
+            // const createUser = await userModal.create({ email })
+            res.status(201).json({ email })
         } catch (error) {
             next(error)
         }
