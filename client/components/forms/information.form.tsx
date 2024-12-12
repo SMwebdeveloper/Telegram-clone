@@ -16,7 +16,7 @@ import { Button } from "../ui/button";
 import { profileSchema } from "@/lib/validation";
 import { useMutation } from "@tanstack/react-query";
 import { axiosClient } from "@/http/axios";
-import { IError, IUser } from "@/types";
+import { IUser } from "@/types";
 import { toast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { generateToken } from "@/lib/generate-token";
@@ -47,18 +47,6 @@ const InformationForm = () => {
       // signIn("credentials", { email: user.email, callbackUrl: "/" });
       toast({ description: "Successfully verified" });
       update();
-    },
-    onError: (error: IError) => {
-      if (error.response?.data?.message) {
-        return toast({
-          description: error.response.data.message,
-          variant: "destructive",
-        });
-      }
-      return toast({
-        description: "Something went wrong",
-        variant: "destructive",
-      });
     },
   });
 
