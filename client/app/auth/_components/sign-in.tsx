@@ -40,18 +40,6 @@ const SignIn = () => {
       setStep("verify");
       toast({ description: "Email sent" });
     },
-    onError: (error: IError) => {
-      if (error.response?.data?.message) {
-        return toast({
-          description: error.response.data.message,
-          variant: "destructive",
-        });
-      }
-      return toast({
-        description: "Something went wrong",
-        variant: "destructive",
-      });
-    },
   });
 
   function onSubmit(values: z.infer<typeof emailSchema>) {
