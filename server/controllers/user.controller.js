@@ -8,7 +8,7 @@ class UserController {
     // [GET]
     async getContact(req, res, next) {
         try {
-            const userId = '675493543b7fbe3c33f1401e'
+            const userId = req.user._id
             // const user = await userModels.findById(userId)
 
             const contacts = await userModels.findById(userId).populate('contacts')
@@ -87,7 +87,7 @@ class UserController {
     async createContact(req, res, next) {
         try {
             const { email } = req.body
-            const userId = '675493543b7fbe3c33f1401e'
+            const userId = req.user._id
             const user = await userModels.findById(userId)
             const contact = await userModels.findOne({ email })
             if (!contact) throw BaseError.BadRequest('User with this email does not exist')
@@ -99,7 +99,7 @@ class UserController {
 
             await userModels.findByIdAndUpdate(userId, { $push: { contacts: contact._id } })
             const addedContact = await userModels.findByIdAndUpdate(contact._id, { $push: { contacts: userId } }, { new: true })
-            return res.status(201).json({ message: 'Contact added successfully', contact: addedContact })
+            return res.status(201).json({ contact: addedContact })
         } catch (error) {
             next(error)
         }
