@@ -8,11 +8,14 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import React, { FC, useState } from "react";
 import Settings from "./settings";
+import { useAuth } from "@/hooks/use-auth";
 interface Props {
   contacts: IUser[];
 }
 const ContactLists: FC<Props> = ({ contacts }) => {
   const [query, setQuery] = useState("");
+
+  const { onlineUsers } = useAuth();
   const router = useRouter();
   const { currentContact, setCurrentContact } = useCurrentContact();
 
@@ -45,7 +48,9 @@ const ContactLists: FC<Props> = ({ contacts }) => {
                 {contact.email[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="size-3 bg-green-500 absolute rounded-full bottom-0 right-0 !z-50"></div>
+            {onlineUsers.some((user) => user._id == contact._id) && (
+              <div className="size-3 bg-green-500 absolute rounded-full bottom-0 right-0 !z-50"></div>
+            )}
           </div>
           <div>
             <h2 className="line-clamp-1 text-sm">
