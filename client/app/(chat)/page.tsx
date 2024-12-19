@@ -75,6 +75,14 @@ const Page = () => {
     }
   }, [session?.currentUser]);
 
+  useEffect(() => {
+    if (session?.currentUser) {
+      socket.current?.on("getCreateUser", (user) => {
+        console.log("Created by user", user);
+      });
+    }
+  }, [session?.currentUser, socket]);
+
   const onCreateContact = async (values: z.infer<typeof emailSchema>) => {
     setCreating(true);
     const token = await generateToken(session?.currentUser?._id);
@@ -83,6 +91,11 @@ const Page = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setContacts((prev) => [...prev, data.contact]);
+      socket.current?.emit("createContact", {
+        currentUser: session?.currentUser,
+        receiver: data.contact,
+      });
+
       toast({ description: "Contact added successfully" });
     } catch (error: any) {
       if ((error as IError).response?.data?.message) {
