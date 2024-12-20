@@ -17,15 +17,19 @@ import { generateToken } from "@/lib/generate-token";
 import { axiosClient } from "@/http/axios";
 import { IUser } from "@/index";
 import { toast } from "@/hooks/use-toast";
-import { IError } from "@/types";
+import { IError, IMessage } from "@/types";
 import { io } from "socket.io-client";
 import { useAuth } from "@/hooks/use-auth";
+import useAudio from "@/hooks/use-audio";
 
 const Page = () => {
   const [contacts, setContacts] = useState<IUser[]>([]);
-  const { setCreating, setLoading, isLoading } = useLoading();
+  const [messages, setMessages] = useState<IMessage[]>([]);
+
+  const { setCreating, setLoading, isLoading, setLoadMessages } = useLoading();
   const { currentContact, setCurrentContact } = useCurrentContact();
   const { setOnlineUsers } = useAuth();
+  const { playSound } = useAudio();
 
   const router = useRouter();
   const socket = useRef<ReturnType<typeof io> | null>(null);
@@ -39,7 +43,7 @@ const Page = () => {
 
   const messageForm = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
-    defaultValues: { message: "", image: "" },
+    defaultValues: { text: "", image: "" },
   });
 
   const getContacts = async () => {
@@ -55,6 +59,22 @@ const Page = () => {
       toast({ description: "Cannot fetch contacts", variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getMessages = async () => {
+    setLoadMessages(true);
+    const token = await generateToken(session?.currentUser?._id);
+    try {
+      const { data } = await axiosClient.get<{ messages: IMessage[] }>(
+        `/api/user/messages/${currentContact?._id}`,
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+      setMessages(data.messages);
+    } catch (error) {
+      toast({ description: "Cannot fetch messages", variant: "destructive" });
+    } finally {
+      setLoadMessages(false);
     }
   };
   useEffect(() => {
@@ -78,10 +98,36 @@ const Page = () => {
   useEffect(() => {
     if (session?.currentUser) {
       socket.current?.on("getCreateUser", (user) => {
-        console.log("Created by user", user);
+        setContacts((prev) => {
+          const isExist = prev.some((item) => item._id === user._id);
+          return isExist ? prev : [...prev, user];
+        });
       });
+
+      socket.current?.on(
+        "getNewMessage",
+        ({ newMessage, sender, receiver }: GetSocketType) => {
+          setMessages((prev) => {
+            const isExist = prev.some((item) => item._id === newMessage._id);
+            return isExist ? prev : [...prev, newMessage];
+          });
+          toast({
+            title: "New message",
+            description: `${sender?.email.split("@")[0]} sent you a message`,
+          });
+          if (!receiver?.muted) {
+            playSound(receiver?.notificationSound);
+          }
+        }
+      );
     }
   }, [session?.currentUser, socket]);
+
+  useEffect(() => {
+    if (currentContact?._id) {
+      getMessages();
+    }
+  }, [currentContact]);
 
   const onCreateContact = async (values: z.infer<typeof emailSchema>) => {
     setCreating(true);
@@ -113,8 +159,26 @@ const Page = () => {
     }
   };
 
-  const onSendMessage = (values: z.infer<typeof messageSchema>) => {
-    console.log(values);
+  const onSendMessage = async (values: z.infer<typeof messageSchema>) => {
+    setCreating(true);
+    const token = await generateToken(session?.currentUser?._id);
+    try {
+      const { data } = await axiosClient.post<GetSocketType>(
+        "/api/user/message",
+        { ...values, receiver: currentContact?._id },
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+      socket.current?.emit("sendMessage", {
+        newMessage: data.newMessage,
+        receiver: data.receiver,
+        sender: data.sender,
+      });
+      messageForm.reset();
+    } catch (error) {
+      toast({ description: "Cannot sent message", variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
   };
   return (
     <>
@@ -142,7 +206,11 @@ const Page = () => {
           <div className="w-full relative">
             <TopChat />
             {/* Chat */}
-            <Chat messageForm={messageForm} onSendMessage={onSendMessage} />
+            <Chat
+              messageForm={messageForm}
+              onSendMessage={onSendMessage}
+              messages={messages}
+            />
           </div>
         )}
       </div>
@@ -151,3 +219,8 @@ const Page = () => {
 };
 
 export default Page;
+interface GetSocketType {
+  receiver: IUser;
+  sender: IUser;
+  newMessage: IMessage;
+}

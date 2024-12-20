@@ -27,10 +27,16 @@ io.on("connection", socket => {
 
     socket.on("createContact", ({ currentUser, receiver }) => {
         const receiverSocketId = getSocketId(receiver._id)
-        console.log("receiverSocketId", receiverSocketId)
 
         if (receiverSocketId) {
             socket.to(receiverSocketId).emit('getCreateUser', currentUser)
+        }
+    })
+
+    socket.on('sendMessage', ({ newMessage, receiver, sender }) => {
+        const receiverSocketId = getSocketId(receiver._id)
+        if (receiverSocketId) {
+            socket.to(receiverSocketId).emit('getNewMessage', { newMessage, sender, receiver })
         }
     })
 

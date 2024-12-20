@@ -17,24 +17,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useTheme } from "next-themes";
+import { IMessage } from "@/types";
+import { useLoading } from "@/hooks/use-loading";
 
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
   onSendMessage: (message: z.infer<typeof messageSchema>) => void;
+  messages: IMessage[];
 }
-const Chat: FC<Props> = ({ messageForm, onSendMessage }) => {
+const Chat: FC<Props> = ({ messageForm, onSendMessage, messages }) => {
   const { resolvedTheme } = useTheme();
+  const { loadMessages } = useLoading();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleEmojiSelect = (emoji: string) => {
     const input = inputRef.current;
     if (!input) return;
 
-    const text = messageForm.getValues("message");
+    const text = messageForm.getValues("text");
     const start = input.selectionStart ?? 0;
     const end = input.selectionEnd ?? 0;
 
     const newText = text.slice(0, start) + emoji + text.slice(end);
-    messageForm.setValue("message", newText);
+    messageForm.setValue("text", newText);
 
     setTimeout(() => {
       input.setSelectionRange(start + emoji.length, start + emoji.length);
@@ -43,15 +47,22 @@ const Chat: FC<Props> = ({ messageForm, onSendMessage }) => {
   return (
     <div className="flex flex-col justify-end z-40 min-h-[92vh]">
       {/* Loading */}
-      {/* <ChatLoading /> */}
+      {loadMessages && <ChatLoading />}
       {/* Messages */}
-      {/* <MessageCard isReceived /> */}
+      {messages.map((message, index) => (
+        <MessageCard message={message} key={index} />
+      ))}
       {/* Start conversation */}
-      {/* <div className='w-full h-[88vh] flex items-center justify-center'>
-				<div className='text-[100px] cursor-pointer' onClick={() => onSendMessage({ text: '✋' })}>
-					✋
-				</div>
-			</div> */}
+      {messages.length === 0 && (
+        <div className="w-full h-[88vh] flex items-center justify-center">
+          <div
+            className="text-[100px] cursor-pointer"
+            onClick={() => onSendMessage({ text: "✋" })}
+          >
+            ✋
+          </div>
+        </div>
+      )}
       {/* Message input */}
       <Form {...messageForm}>
         <form
@@ -63,7 +74,7 @@ const Chat: FC<Props> = ({ messageForm, onSendMessage }) => {
           </Button>
           <FormField
             control={messageForm.control}
-            name="message"
+            name="text"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl>
