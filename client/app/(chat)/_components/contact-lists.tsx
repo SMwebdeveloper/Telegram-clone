@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useCurrentContact } from "@/hooks/use-current";
-import { IUser } from "@/index";
+import { IUser } from "@/types/index";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import React, { FC, useState } from "react";

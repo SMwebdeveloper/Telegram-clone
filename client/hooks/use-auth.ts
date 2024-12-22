@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { IUser } from "..";
+import { IUser } from "@/types";
 
 type Store = {
   step: "login" | "verify";

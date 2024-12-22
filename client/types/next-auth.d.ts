@@ -1,5 +1,5 @@
 import { DefaultSession } from "next-auth";
-import { IUser } from ".";
+import { IUser } from "./index";
 
 declare module "next-auth" {
   interface Session {

@@ -15,7 +15,7 @@ import { useLoading } from "@/hooks/use-loading";
 import { useSession } from "next-auth/react";
 import { generateToken } from "@/lib/generate-token";
 import { axiosClient } from "@/http/axios";
-import { IUser } from "@/index";
+import { IUser } from "@/types/index";
 import { toast } from "@/hooks/use-toast";
 import { IError, IMessage } from "@/types";
 import { io } from "socket.io-client";
@@ -168,12 +168,13 @@ const Page = () => {
         { ...values, receiver: currentContact?._id },
         { headers: { Authorization: `Baeror ${token}` } }
       );
+      setMessages((prev) => [...prev, data.newMessage]);
+      messageForm.reset();
       socket.current?.emit("sendMessage", {
         newMessage: data.newMessage,
         receiver: data.receiver,
         sender: data.sender,
       });
-      messageForm.reset();
     } catch (error) {
       toast({ description: "Cannot sent message", variant: "destructive" });
     } finally {
