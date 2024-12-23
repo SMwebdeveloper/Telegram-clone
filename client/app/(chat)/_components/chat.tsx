@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { messageSchema } from "@/lib/validation";
 import { Paperclip, Send, Smile } from "lucide-react";
-import { FC, useRef } from "react";
+import { FC, useEffect, useRef } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import data from "@emoji-mart/data";
@@ -22,13 +22,24 @@ import { useLoading } from "@/hooks/use-loading";
 
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
-  onSendMessage: (message: z.infer<typeof messageSchema>) => void;
+  onSendMessage: (message: z.infer<typeof messageSchema>) => Promise<void>;
   messages: IMessage[];
+  onReadMessages: () => Promise<void>;
 }
-const Chat: FC<Props> = ({ messageForm, onSendMessage, messages }) => {
+const Chat: FC<Props> = ({
+  messageForm,
+  onSendMessage,
+  messages,
+  onReadMessages,
+}) => {
   const { resolvedTheme } = useTheme();
   const { loadMessages } = useLoading();
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    onReadMessages();
+  }, [messages]);
+
   const handleEmojiSelect = (emoji: string) => {
     const input = inputRef.current;
     if (!input) return;

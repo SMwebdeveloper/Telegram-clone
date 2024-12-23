@@ -33,10 +33,17 @@ io.on("connection", socket => {
         }
     })
 
-    socket.on('sendMessage', ({ newMessage, receiver, sender }) => {
+    socket.on('sendMessages', ({ newMessage, receiver, sender }) => {
         const receiverSocketId = getSocketId(receiver._id)
         if (receiverSocketId) {
             socket.to(receiverSocketId).emit('getNewMessage', { newMessage, sender, receiver })
+        }
+    })
+
+    socket.on('readMessages', ({ receiver, messages }) => {
+        const receiveredSocketId = getSocketId(receiver._id)
+        if (receiveredSocketId) {
+            socket.to(receiveredSocketId).emit("getReadMessages", messages)
         }
     })
 

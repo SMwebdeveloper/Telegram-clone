@@ -4,11 +4,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useCurrentContact } from "@/hooks/use-current";
 import { IUser } from "@/types/index";
-import { cn } from "@/lib/utils";
+import { cn, sliceText } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import React, { FC, useState } from "react";
 import Settings from "./settings";
 import { useAuth } from "@/hooks/use-auth";
+import { format } from "date-fns";
+import { CONST } from "@/lib/constants";
+
 interface Props {
   contacts: IUser[];
 }
@@ -19,7 +22,7 @@ const ContactLists: FC<Props> = ({ contacts }) => {
   const router = useRouter();
   const { currentContact, setCurrentContact } = useCurrentContact();
 
-  const filteredContacts = contacts.filter((contact) =>
+  const filteredContacts = contacts?.filter((contact) =>
     contact.email.toLowerCase().includes(query.toLowerCase())
   );
   const renderContact = (contact: IUser) => {
@@ -58,14 +61,28 @@ const ContactLists: FC<Props> = ({ contacts }) => {
                 ? `${contact.email.substring(0, 20)}...`
                 : contact.email.split("@gmail.com")}
             </h2>
-            <p className="text-xs line-clamp-1 text-muted-foreground">
-              No message yet
+            <p
+              className={cn(
+                "text-xs line-clamp-1",
+                contact.lastMessage
+                  ? contact.lastMessage.status !== CONST.READ
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              {contact.lastMessage
+                ? sliceText(contact.lastMessage.text, 20)
+                : "No message yet"}
             </p>
           </div>
         </div>
 
         <div className="self-end">
-          <p className="text-xs text-muted-foreground">19:20 pm</p>
+          <p className="text-xs text-muted-foreground">
+            {contact.lastMessage &&
+              format(contact?.lastMessage?.updatedAt, "hh:mm a")}
+          </p>
         </div>
       </div>
     );
@@ -86,12 +103,12 @@ const ContactLists: FC<Props> = ({ contacts }) => {
         </div>
       </div>
       {/* Contacts */}
-      {filteredContacts.length === 0 ? (
+      {filteredContacts?.length === 0 ? (
         <div className="w-full h-[95vh] flex justify-center items-center text-center text-muted-foreground">
           <p>Contact list is empty</p>
         </div>
       ) : (
-        filteredContacts.map((contact) => (
+        filteredContacts?.map((contact) => (
           <div key={contact._id}>{renderContact(contact)}</div>
         ))
       )}

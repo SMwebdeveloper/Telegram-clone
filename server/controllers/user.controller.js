@@ -48,7 +48,7 @@ class UserController {
                 .populate({ path: 'sender', select: 'email' })
                 .populate({ path: 'receiver', select: 'email' })
 
-            await messageModels.updateMany({ sender: contactId, receiver: user, status: CONST.READ }, { status: CONST.READ })
+            await messageModels.updateMany({ sender: contactId, receiver: user, status: CONST.SENT }, { status: CONST.READ })
 
             res.status(200).json({ messages })
         } catch (error) {

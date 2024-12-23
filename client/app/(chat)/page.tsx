@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ContactLists from "./_components/contact-lists";
 import { useCurrentContact } from "@/hooks/use-current";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AddContact from "./_components/add-contact";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,6 +21,7 @@ import { IError, IMessage } from "@/types";
 import { io } from "socket.io-client";
 import { useAuth } from "@/hooks/use-auth";
 import useAudio from "@/hooks/use-audio";
+import { CONST } from "@/lib/constants";
 
 const Page = () => {
   const [contacts, setContacts] = useState<IUser[]>([]);
@@ -33,8 +34,10 @@ const Page = () => {
 
   const router = useRouter();
   const socket = useRef<ReturnType<typeof io> | null>(null);
-
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
+
+  const CONTACT_ID = searchParams.get("chat");
 
   const contactForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -111,6 +114,13 @@ const Page = () => {
             const isExist = prev.some((item) => item._id === newMessage._id);
             return isExist ? prev : [...prev, newMessage];
           });
+          setContacts((prev) =>
+            prev.map((item) =>
+              item._id === sender?._id
+                ? { ...item, lastMessage: newMessage }
+                : item
+            )
+          );
           toast({
             title: "New message",
             description: `${sender?.email.split("@")[0]} sent you a message`,
@@ -120,6 +130,15 @@ const Page = () => {
           }
         }
       );
+
+      socket.current?.on("getReadMessages", (messages: IMessage[]) => {
+        setMessages((prev) => {
+          return prev.map((item) => {
+            const message = messages.find((msg) => msg._id === item._id);
+            return message ? { ...item, status: CONST.READ } : item;
+          });
+        });
+      });
     }
   }, [session?.currentUser, socket]);
 
@@ -170,7 +189,7 @@ const Page = () => {
       );
       setMessages((prev) => [...prev, data.newMessage]);
       messageForm.reset();
-      socket.current?.emit("sendMessage", {
+      socket.current?.emit("sendMessages", {
         newMessage: data.newMessage,
         receiver: data.receiver,
         sender: data.sender,
@@ -179,6 +198,36 @@ const Page = () => {
       toast({ description: "Cannot sent message", variant: "destructive" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  const onReadMessages = async () => {
+    const receivedMessages = messages
+      .filter((message) => message.receiver._id === session?.currentUser?._id)
+      .filter((message) => message.status !== CONST.READ);
+
+    if (receivedMessages.length == 0) return;
+    const token = await generateToken(session?.currentUser?._id);
+
+    try {
+      const { data } = await axiosClient.post<{ messages: IMessage[] }>(
+        "/api/user/message-read",
+        { messages: receivedMessages },
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+
+      socket.current?.emit("readMessages", {
+        receiver: currentContact,
+        messages: data.messages,
+      });
+      setMessages((prev) => {
+        return prev.map((item) => {
+          const message = data.messages.find((msg) => msg._id === item._id);
+          return message ? { ...item, status: CONST.READ } : item;
+        });
+      });
+    } catch (error) {
+      toast({ description: "Cannot read messages", variant: "destructive" });
     }
   };
   return (
@@ -211,6 +260,7 @@ const Page = () => {
               messageForm={messageForm}
               onSendMessage={onSendMessage}
               messages={messages}
+              onReadMessages={onReadMessages}
             />
           </div>
         )}
