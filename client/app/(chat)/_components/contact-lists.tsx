@@ -22,20 +22,21 @@ const ContactLists: FC<Props> = ({ contacts }) => {
   const router = useRouter();
   const { currentContact, setCurrentContact } = useCurrentContact();
 
+  console.log(contacts);
   const filteredContacts = contacts?.filter((contact) =>
     contact.email.toLowerCase().includes(query.toLowerCase())
   );
   const renderContact = (contact: IUser) => {
     const onChat = () => {
-      if (currentContact?._id === contact._id) return console.log(1);
+      if (currentContact?._id === contact?._id) return console.log(1);
       setCurrentContact(contact);
-      router.push(`/?chat=${contact._id}`);
+      router.push(`/?chat=${contact?._id}`);
     };
     return (
       <div
         className={cn(
           "flex justify-between items-center cursor-pointer hover:bg-secondary/50 p-2",
-          currentContact?._id === contact._id && "bg-secondary/50"
+          currentContact?._id === contact?._id && "bg-secondary/50"
         )}
         onClick={onChat}
       >
@@ -43,44 +44,44 @@ const ContactLists: FC<Props> = ({ contacts }) => {
           <div className="relative">
             <Avatar>
               <AvatarImage
-                src={contact.avatar}
-                alt={contact.email}
+                src={contact?.avatar}
+                alt={contact?.email}
                 className="object-cover"
               />
               <AvatarFallback className="uppercase">
-                {contact.email[0]}
+                {contact?.email?.[0]}
               </AvatarFallback>
             </Avatar>
-            {onlineUsers.some((user) => user._id == contact._id) && (
+            {onlineUsers.some((user) => user?._id == contact?._id) && (
               <div className="size-3 bg-green-500 absolute rounded-full bottom-0 right-0 !z-50"></div>
             )}
           </div>
           <div>
             <h2 className="line-clamp-1 text-sm">
-              {contact.email.length > 20
-                ? `${contact.email.substring(0, 20)}...`
-                : contact.email.split("@gmail.com")}
+              {contact?.email?.length > 20
+                ? `${contact?.email?.substring(0, 20)}...`
+                : contact?.email?.split("@gmail.com")}
             </h2>
             <p
               className={cn(
                 "text-xs line-clamp-1",
-                contact.lastMessage
+                contact?.lastMessage
                   ? contact.lastMessage.status !== CONST.READ
                     ? "text-foreground"
                     : "text-muted-foreground"
                   : "text-muted-foreground"
               )}
             >
-              {contact.lastMessage
-                ? sliceText(contact.lastMessage.text, 20)
-                : "No message yet"}
+              {contact?.lastMessage
+                ? sliceText(contact?.lastMessage?.text, 25)
+                : "No messages yet"}
             </p>
           </div>
         </div>
 
         <div className="self-end">
           <p className="text-xs text-muted-foreground">
-            {contact.lastMessage &&
+            {contact?.lastMessage &&
               format(contact?.lastMessage?.updatedAt, "hh:mm a")}
           </p>
         </div>

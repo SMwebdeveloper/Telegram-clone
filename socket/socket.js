@@ -20,20 +20,19 @@ const getSocketId = userId => {
 io.on("connection", socket => {
     console.log("User connected", socket.id)
 
-    socket.on("addOnlineUser", user => {
+    socket.on('addOnlineUser', user => {
         addOnlineUser(user, socket.id)
-        io.emit("getOnlineUsers", users)
+        io.emit('getOnlineUsers', users)
     })
 
-    socket.on("createContact", ({ currentUser, receiver }) => {
+    socket.on('createContact', ({ currentUser, receiver }) => {
         const receiverSocketId = getSocketId(receiver._id)
-
         if (receiverSocketId) {
-            socket.to(receiverSocketId).emit('getCreateUser', currentUser)
+            socket.to(receiverSocketId).emit('getCreatedUser', currentUser)
         }
     })
 
-    socket.on('sendMessages', ({ newMessage, receiver, sender }) => {
+    socket.on('sendMessage', ({ newMessage, receiver, sender }) => {
         const receiverSocketId = getSocketId(receiver._id)
         if (receiverSocketId) {
             socket.to(receiverSocketId).emit('getNewMessage', { newMessage, sender, receiver })
@@ -41,16 +40,16 @@ io.on("connection", socket => {
     })
 
     socket.on('readMessages', ({ receiver, messages }) => {
-        const receiveredSocketId = getSocketId(receiver._id)
-        if (receiveredSocketId) {
-            socket.to(receiveredSocketId).emit("getReadMessages", messages)
+        const receiverSocketId = getSocketId(receiver._id)
+        if (receiverSocketId) {
+            socket.to(receiverSocketId).emit('getReadMessages', messages)
         }
     })
 
-    socket.on("disconnect", () => {
-        console.log("User disconnected", socket.id)
-        users = users.filter(user => user.socketId !== socket.id)
-        io.emit("getOnlineUsers", users)
+    socket.on('disconnect', () => {
+        console.log('User disconnected', socket.id)
+        users = users.filter(u => u.socketId !== socket.id)
+        io.emit('getOnlineUsers', users)
     })
 
 })
