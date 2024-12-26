@@ -22,7 +22,6 @@ const ContactLists: FC<Props> = ({ contacts }) => {
   const router = useRouter();
   const { currentContact, setCurrentContact } = useCurrentContact();
 
-  console.log(contacts);
   const filteredContacts = contacts?.filter((contact) =>
     contact.email.toLowerCase().includes(query.toLowerCase())
   );

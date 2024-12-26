@@ -127,12 +127,14 @@ const HomePage = () => {
       socket.current?.on(
         "getNewMessage",
         ({ newMessage, sender, receiver }: GetSocketType) => {
-          setMessages((prev) => {
-            const isExist = prev.some((item) => item._id === newMessage._id);
+          setMessages((prev: any) => {
+            const isExist = prev.some(
+              (item: IMessage) => item._id === newMessage?._id
+            );
             return isExist ? prev : [...prev, newMessage];
           });
-          setContacts((prev) => {
-            return prev.map((contact) => {
+          setContacts((prev: any) => {
+            return prev.map((contact: IUser) => {
               if (contact._id === sender._id) {
                 return {
                   ...contact,
@@ -141,7 +143,7 @@ const HomePage = () => {
                     status:
                       CONTACT_ID === sender._id
                         ? CONST.READ
-                        : newMessage.status,
+                        : newMessage?.status,
                   },
                 };
               }
@@ -166,6 +168,44 @@ const HomePage = () => {
           });
         });
       });
+
+      socket.current?.on(
+        "getUpdateMessage",
+        ({ updatedMessage, sender, receiver }: GetSocketType) => {
+          setMessages((prev: any) =>
+            prev.map((item: any) =>
+              item._id === updatedMessage?._id
+                ? { ...item, reaction: updatedMessage?.reaction }
+                : item
+            )
+          );
+        }
+      );
+
+      socket.current?.on(
+        "getDeleteMessage",
+        ({ deletedMessage, sender, filteredMessages }: GetSocketType) => {
+          setMessages((prev) =>
+            prev.filter((item) => item._id !== deletedMessage?._id)
+          );
+          const lastMessage = filteredMessages?.length
+            ? filteredMessages?.[filteredMessages?.length - 1]
+            : null;
+          setContacts((prev) =>
+            prev.map((item) =>
+              item._id === sender._id
+                ? {
+                    ...item,
+                    lastMessage:
+                      item.lastMessage?._id === deletedMessage?._id
+                        ? lastMessage
+                        : item.lastMessage,
+                  }
+                : item
+            )
+          );
+        }
+      );
     }
   }, [session?.currentUser, socket, CONTACT_ID]);
 
@@ -218,9 +258,9 @@ const HomePage = () => {
         { ...values, receiver: currentContact?._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMessages((prev) => [...prev, data.newMessage]);
-      setContacts((prev) =>
-        prev.map((item) =>
+      setMessages((prev: any) => [...prev, data.newMessage]);
+      setContacts((prev: any) =>
+        prev.map((item: IUser) =>
           item._id === currentContact?._id
             ? {
                 ...item,
@@ -270,6 +310,67 @@ const HomePage = () => {
     }
   };
 
+  const onReaction = async (reaction: string, messageId: string) => {
+    const token = await generateToken(session?.currentUser?._id);
+    try {
+      const { data } = await axiosClient.post<{ updatedMessage: IMessage }>(
+        "/api/user/reaction",
+        { reaction, messageId },
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+      setMessages((prev) =>
+        prev.map((item) =>
+          item._id === data?.updatedMessage?._id
+            ? { ...item, reaction: data?.updatedMessage?.reaction }
+            : item
+        )
+      );
+      socket.current?.emit("updatedMessage", {
+        updatedMessage: data?.updatedMessage,
+        receiver: currentContact,
+        sender: session?.currentUser,
+      });
+    } catch (error) {
+      toast({ description: "Cannot read to message", variant: "destructive" });
+    }
+  };
+
+  const onDeletedMessage = async (messageId: string) => {
+    const token = await generateToken(session?.currentUser?._id);
+    try {
+      const { data } = await axiosClient.delete(
+        `/api/user/message/${messageId}`,
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+      const filteredMessages = messages.filter(
+        (item) => item._id !== data?._id
+      );
+      setMessages(filteredMessages);
+      socket.current?.emit("deleteMessage", {
+        deletedMessage: data,
+        sender: session?.currentUser,
+        receiver: currentContact,
+        filteredMessages,
+      });
+      setContacts((prev) =>
+        prev.map((item) =>
+          item._id === currentContact?._id
+            ? {
+                ...item,
+                lastMessage:
+                  item.lastMessage?._id === messageId
+                    ? filteredMessages.length
+                      ? filteredMessages[filteredMessages.length - 1]
+                      : null
+                    : item.lastMessage,
+              }
+            : item
+        )
+      );
+    } catch (error) {
+      toast({ description: "Cannot delete message", variant: "destructive" });
+    }
+  };
   return (
     <>
       <div className="w-80 h-screen border-r fixed inset-0 z-50">
@@ -297,6 +398,8 @@ const HomePage = () => {
               onSendMessage={onSendMessage}
               messages={messages}
               onReadMessages={onReadMessages}
+              onReaction={onReaction}
+              onDeletedMessage={onDeletedMessage}
             />
           </div>
         )}
@@ -310,5 +413,8 @@ export default HomePage;
 interface GetSocketType {
   receiver: IUser;
   sender: IUser;
-  newMessage: IMessage;
+  newMessage?: IMessage | null;
+  updatedMessage?: IMessage | null;
+  deletedMessage?: IMessage | null;
+  filteredMessages?: IMessage[];
 }

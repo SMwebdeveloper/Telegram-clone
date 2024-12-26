@@ -23,6 +23,8 @@ import { useLoading } from "@/hooks/use-loading";
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
   onSendMessage: (message: z.infer<typeof messageSchema>) => Promise<void>;
+  onReaction: (reaction: string, messageId: string) => Promise<void>;
+  onDeletedMessage: (messageId: string) => Promise<void>;
   messages: IMessage[];
   onReadMessages: () => Promise<void>;
 }
@@ -31,6 +33,8 @@ const Chat: FC<Props> = ({
   onSendMessage,
   messages,
   onReadMessages,
+  onReaction,
+  onDeletedMessage,
 }) => {
   const { resolvedTheme } = useTheme();
   const scrollRef = useRef<HTMLFormElement | null>(null);
@@ -63,7 +67,12 @@ const Chat: FC<Props> = ({
       {loadMessages && <ChatLoading />}
       {/* Messages */}
       {messages.map((message, index) => (
-        <MessageCard message={message} key={index} />
+        <MessageCard
+          message={message}
+          key={index}
+          onReaction={onReaction}
+          onDeletedMessage={onDeletedMessage}
+        />
       ))}
       {/* Start conversation */}
       {messages.length === 0 && (

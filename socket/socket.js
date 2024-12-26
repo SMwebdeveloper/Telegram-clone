@@ -46,6 +46,18 @@ io.on("connection", socket => {
         }
     })
 
+    socket.on('updatedMessage', ({ updatedMessage, receiver, sender }) => {
+        const receiverSocketId = getSocketId(receiver._id)
+        if (receiverSocketId) {
+            socket.to(receiverSocketId).emit('getUpdateMessage', { updatedMessage, sender, receiver })
+        }
+    })
+    socket.on("deleteMessage", ({ deletedMessage, receiver, filteredMessages, sender }) => {
+        const receiverSocketId = getSocketId(receiver._id)
+        if (receiverSocketId) {
+            socket.to(receiverSocketId).emit("getDeleteMessage", { deletedMessage, filteredMessages, sender })
+        }
+    })
     socket.on('disconnect', () => {
         console.log('User disconnected', socket.id)
         users = users.filter(u => u.socketId !== socket.id)
