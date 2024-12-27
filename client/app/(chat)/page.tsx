@@ -28,7 +28,7 @@ const HomePage = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
 
   const { setCreating, setLoading, isLoading, setLoadMessages } = useLoading();
-  const { currentContact } = useCurrentContact();
+  const { currentContact, editMessage, setEditMessage } = useCurrentContact();
   const { data: session } = useSession();
   const { setOnlineUsers } = useAuth();
   const { playSound } = useAudio();
@@ -175,7 +175,24 @@ const HomePage = () => {
           setMessages((prev: any) =>
             prev.map((item: any) =>
               item._id === updatedMessage?._id
-                ? { ...item, reaction: updatedMessage?.reaction }
+                ? {
+                    ...item,
+                    reaction: updatedMessage?.reaction,
+                    text: updatedMessage?.text,
+                  }
+                : item
+            )
+          );
+          setContacts((prev: any) =>
+            prev.map((item: any) =>
+              item._id === sender._id
+                ? {
+                    ...item,
+                    lastMessage:
+                      item.lastMessage?._id === updatedMessage?._id
+                        ? updatedMessage
+                        : item.lastMessage,
+                  }
                 : item
             )
           );
@@ -193,7 +210,7 @@ const HomePage = () => {
             : null;
           setContacts((prev) =>
             prev.map((item) =>
-              item._id === sender._id
+              item._id === sender?._id
                 ? {
                     ...item,
                     lastMessage:
@@ -215,6 +232,14 @@ const HomePage = () => {
     }
   }, [currentContact]);
 
+  const onSubmitMessage = async (values: z.infer<typeof messageSchema>) => {
+    setCreating(true);
+    if (editMessage?._id) {
+      onEditMessage(editMessage._id, values.text);
+    } else {
+      onSendMessage(values);
+    }
+  };
   const onCreateContact = async (values: z.infer<typeof emailSchema>) => {
     setCreating(true);
     const token = await generateToken(session?.currentUser?._id);
@@ -309,7 +334,45 @@ const HomePage = () => {
       toast({ description: "Cannot read messages", variant: "destructive" });
     }
   };
-
+  const onEditMessage = async (messageId: string, text: string) => {
+    const token = await generateToken(session?.currentUser?._id);
+    try {
+      const { data } = await axiosClient.put<{ updatedMessage: IMessage }>(
+        `/api/user/message/${messageId}`,
+        { text },
+        { headers: { Authorization: `Baeror ${token}` } }
+      );
+      setMessages((prev) =>
+        prev.map((item) =>
+          item._id === data?.updatedMessage?._id
+            ? { ...item, text: data.updatedMessage.text }
+            : item
+        )
+      );
+      socket.current?.emit("updatedMessage", {
+        updatedMessage: data?.updatedMessage,
+        receiver: currentContact,
+        sender: session?.currentUser,
+      });
+      setContacts((prev) =>
+        prev.map((item) =>
+          item._id === currentContact?._id
+            ? {
+                ...item,
+                lastMessage:
+                  item.lastMessage?._id === messageId
+                    ? data.updatedMessage
+                    : item.lastMessage,
+              }
+            : item
+        )
+      );
+      setEditMessage(null);
+      messageForm.reset();
+    } catch (error) {
+      toast({ description: "Cannot edit message", variant: "destructive" });
+    }
+  };
   const onReaction = async (reaction: string, messageId: string) => {
     const token = await generateToken(session?.currentUser?._id);
     try {
@@ -371,6 +434,7 @@ const HomePage = () => {
       toast({ description: "Cannot delete message", variant: "destructive" });
     }
   };
+
   return (
     <>
       <div className="w-80 h-screen border-r fixed inset-0 z-50">
@@ -395,7 +459,7 @@ const HomePage = () => {
             <TopChat />
             <Chat
               messageForm={messageForm}
-              onSendMessage={onSendMessage}
+              onSubmitMessage={onSubmitMessage}
               messages={messages}
               onReadMessages={onReadMessages}
               onReaction={onReaction}

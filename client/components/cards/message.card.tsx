@@ -19,7 +19,7 @@ interface Props {
   onDeletedMessage: (messageId: string) => Promise<void>;
 }
 const MessageCard: FC<Props> = ({ message, onReaction, onDeletedMessage }) => {
-  const { currentContact } = useCurrentContact();
+  const { currentContact, setEditMessage } = useCurrentContact();
   const reactions = ["👍", "😂", "❤️", "😍", "👎"];
 
   return (
@@ -78,7 +78,10 @@ const MessageCard: FC<Props> = ({ message, onReaction, onDeletedMessage }) => {
         {message.sender._id !== currentContact?._id && (
           <>
             <ContextMenuSeparator />
-            <ContextMenuItem className="cursor-pointer">
+            <ContextMenuItem
+              className="cursor-pointer"
+              onClick={() => setEditMessage(message)}
+            >
               <Edit2 size={14} className="mr-2" />
               <span>Edit</span>
             </ContextMenuItem>

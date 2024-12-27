@@ -3,7 +3,6 @@ import ChatLoading from "@/components/loading/chat.loading";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { messageSchema } from "@/lib/validation";
 import { Paperclip, Send, Smile } from "lucide-react";
 import { FC, useEffect, useRef } from "react";
@@ -19,10 +18,11 @@ import {
 import { useTheme } from "next-themes";
 import { IMessage } from "@/types";
 import { useLoading } from "@/hooks/use-loading";
+import { useCurrentContact } from "@/hooks/use-current";
 
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
-  onSendMessage: (message: z.infer<typeof messageSchema>) => Promise<void>;
+  onSubmitMessage: (message: z.infer<typeof messageSchema>) => Promise<void>;
   onReaction: (reaction: string, messageId: string) => Promise<void>;
   onDeletedMessage: (messageId: string) => Promise<void>;
   messages: IMessage[];
@@ -30,7 +30,7 @@ interface Props {
 }
 const Chat: FC<Props> = ({
   messageForm,
-  onSendMessage,
+  onSubmitMessage,
   messages,
   onReadMessages,
   onReaction,
@@ -39,6 +39,7 @@ const Chat: FC<Props> = ({
   const { resolvedTheme } = useTheme();
   const scrollRef = useRef<HTMLFormElement | null>(null);
   const { loadMessages } = useLoading();
+  const { editMessage } = useCurrentContact();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -46,6 +47,12 @@ const Chat: FC<Props> = ({
     onReadMessages();
   }, [messages]);
 
+  useEffect(() => {
+    if (editMessage) {
+      messageForm.setValue("text", editMessage.text);
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [editMessage]);
   const handleEmojiSelect = (emoji: string) => {
     const input = inputRef.current;
     if (!input) return;
@@ -79,7 +86,7 @@ const Chat: FC<Props> = ({
         <div className="w-full h-[88vh] flex items-center justify-center">
           <div
             className="text-[100px] cursor-pointer"
-            onClick={() => onSendMessage({ text: "✋" })}
+            onClick={() => onSubmitMessage({ text: "✋" })}
           >
             ✋
           </div>
@@ -88,7 +95,7 @@ const Chat: FC<Props> = ({
       {/* Message input */}
       <Form {...messageForm}>
         <form
-          onSubmit={messageForm.handleSubmit(onSendMessage)}
+          onSubmit={messageForm.handleSubmit(onSubmitMessage)}
           className="w-full flex relative"
           ref={scrollRef}
         >
