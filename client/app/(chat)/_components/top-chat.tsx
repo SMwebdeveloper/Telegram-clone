@@ -12,10 +12,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCurrentContact } from "@/hooks/use-current";
 import { useLoading } from "@/hooks/use-loading";
 import { sliceText } from "@/lib/utils";
+import { IMessage } from "@/types";
 import { Settings2 } from "lucide-react";
 import Image from "next/image";
+import { FC } from "react";
 
-const TopChat = () => {
+interface Props {
+  messages: IMessage[];
+}
+const TopChat: FC<Props> = ({ messages }) => {
   const { currentContact } = useCurrentContact();
   const { onlineUsers } = useAuth();
   const { typing } = useLoading();
@@ -35,39 +40,32 @@ const TopChat = () => {
         </Avatar>
         <div className="ml-2">
           <h2 className="font-medium text-sm">{currentContact?.email}</h2>
-          {/* IsTyping */}
           {typing.length > 0 ? (
-            <>
-              <div className="text-xs flex items-center gap-1 text-muted-foreground">
-                <p className="text-secondary-foreground animate-pulse line-clamp-1">
-                  {sliceText(typing, 20)}
-                </p>
-                <div className="self-end mb-1">
-                  <div className="flex justify-center items-center gap-1">
-                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.10s]"></div>
-                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                  </div>
+            <div className="text-xs flex items-center gap-1 text-muted-foreground">
+              <p className="text-secondary-foreground animate-pulse line-clamp-1">
+                {sliceText(typing, 20)}
+              </p>
+              <div className="self-end mb-1">
+                <div className="flex justify-center items-center gap-1">
+                  <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.10s]"></div>
+                  <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <p className="text-xs">
-                {onlineUsers.some((user) => user._id == currentContact?._id) ? (
-                  <>
-                    {/* Online */}
-                    <span className="text-green-500">●</span> Online
-                  </>
-                ) : (
-                  <>
-                    {/* Offline */}
-                    <span className="text-muted-foreground">●</span> Last seen
-                    recently
-                  </>
-                )}
-              </p>
-            </>
+            <p className="text-xs">
+              {onlineUsers.some((user) => user._id === currentContact?._id) ? (
+                <>
+                  <span className="text-green-500">●</span> Online
+                </>
+              ) : (
+                <>
+                  <span className="text-muted-foreground">●</span> Last seen
+                  recently
+                </>
+              )}
+            </p>
           )}
         </div>
       </div>
@@ -78,7 +76,7 @@ const TopChat = () => {
             <Settings2 />
           </Button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent className="w-80 p-2 overflow-y-scroll sidebar-custom-scrollbar">
           <SheetHeader>
             <SheetTitle />
           </SheetHeader>
@@ -93,54 +91,58 @@ const TopChat = () => {
                 {currentContact?.email[0]}
               </AvatarFallback>
             </Avatar>
+          </div>
+
+          <Separator className="my-2" />
+
+          <h1 className="text-center font-spaceGrotesk text-md">
+            {currentContact?.email}
+          </h1>
+
+          <div className="flex flex-col space-y-1">
+            {currentContact?.firstName && (
+              <div className="flex items-center gap-1 mt-4">
+                <p className="font-spaceGrotesk">First Name: </p>
+                <p className="font-spaceGrotesk text-muted-foreground">
+                  {currentContact?.firstName}
+                </p>
+              </div>
+            )}
+            {currentContact?.lastName && (
+              <div className="flex items-center gap-1 mt-4">
+                <p className="font-spaceGrotesk">Last Name: </p>
+                <p className="font-spaceGrotesk text-muted-foreground">
+                  {currentContact?.lastName}
+                </p>
+              </div>
+            )}
+            {currentContact?.bio && (
+              <div className="flex items-center gap-1 mt-4">
+                <p className="font-spaceGrotesk">
+                  About:{" "}
+                  <span className="font-spaceGrotesk text-muted-foreground">
+                    {currentContact?.bio}
+                  </span>
+                </p>
+              </div>
+            )}
 
             <Separator className="my-2" />
 
-            <h1 className="text-center capitalize font-spaceGrotesk text-xl">
-              {currentContact?.email}
-            </h1>
-
-            <div className="flex flex-col space-y-1">
-              {currentContact?.firstName && (
-                <div className="flex items-center gap-1 mt-4">
-                  <p className="font-spaceGrotesk">First Name: </p>
-                  <p className="font-spaceGrotesk text-muted-foreground">
-                    {currentContact?.firstName}
-                  </p>
-                </div>
-              )}
-              {currentContact?.lastName && (
-                <div className="flex items-center gap-1 mt-4">
-                  <p className="font-spaceGrotesk">Last Name: </p>
-                  <p className="font-spaceGrotesk text-muted-foreground">
-                    {currentContact?.lastName}
-                  </p>
-                </div>
-              )}
-              {currentContact?.bio && (
-                <div className="flex items-center gap-1 mt-4">
-                  <p className="font-spaceGrotesk">
-                    About:{" "}
-                    <span className="font-spaceGrotesk text-muted-foreground">
-                      {currentContact?.bio}
-                    </span>
-                  </p>
-                </div>
-              )}
-
-              <Separator className="my-2" />
-
-              <h2 className="text-xl">Image</h2>
-              <div className="flex flex-col space-y-2">
-                <div className="w-full h-36 relative">
-                  <Image
-                    src="https://github.com/shadcn.png"
-                    alt="https://github.com/shadcn.png"
-                    fill
-                    className="object-cover rounded-md"
-                  />
-                </div>
-              </div>
+            <h2 className="text-xl">Image</h2>
+            <div className="flex flex-col space-y-2">
+              {messages
+                .filter((msg) => msg.image)
+                .map((msg) => (
+                  <div className="w-full h-36 relative" key={msg._id}>
+                    <Image
+                      src={msg.image}
+                      alt={msg._id}
+                      fill
+                      className="object-cover rounded-md"
+                    />
+                  </div>
+                ))}
             </div>
           </div>
         </SheetContent>

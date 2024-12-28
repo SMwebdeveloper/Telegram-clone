@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { messageSchema } from "@/lib/validation";
 import { Paperclip, Send, Smile } from "lucide-react";
-import { ChangeEvent, FC, useEffect, useRef } from "react";
+import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import data from "@emoji-mart/data";
@@ -19,6 +19,14 @@ import { useTheme } from "next-themes";
 import { IMessage } from "@/types";
 import { useLoading } from "@/hooks/use-loading";
 import { useCurrentContact } from "@/hooks/use-current";
+import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UploadDropzone } from "@/lib/uploadthing";
 
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
@@ -38,6 +46,7 @@ const Chat: FC<Props> = ({
   onTyping,
   onDeletedMessage,
 }) => {
+  const [open, setOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const scrollRef = useRef<HTMLFormElement | null>(null);
   const { loadMessages } = useLoading();
@@ -71,7 +80,7 @@ const Chat: FC<Props> = ({
     }, 0);
   };
   return (
-    <div className="flex flex-col justify-end z-40 min-h-[92vh]">
+    <div className="flex flex-col justify-end z-40 min-h-[92vh] ">
       {/* Loading */}
       {loadMessages && <ChatLoading />}
       {/* Messages */}
@@ -101,9 +110,26 @@ const Chat: FC<Props> = ({
           className="w-full flex relative"
           ref={scrollRef}
         >
-          <Button size={"icon"} type="button" variant={"secondary"}>
-            <Paperclip />
-          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size={"icon"} type="button" variant={"secondary"}>
+                <Paperclip />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle />
+              </DialogHeader>
+              <UploadDropzone
+                endpoint={"imageUploader"}
+                onClientUploadComplete={(res) => {
+                  onSubmitMessage({ text: "", image: res[0].url });
+                  setOpen(false);
+                }}
+                config={{ appendOnPaste: true, mode: "auto" }}
+              />
+            </DialogContent>
+          </Dialog>
           <FormField
             control={messageForm.control}
             name="text"

@@ -129,12 +129,9 @@ const HomePage = () => {
         "getNewMessage",
         ({ newMessage, sender, receiver }: GetSocketType) => {
           setTyping("");
-          setMessages((prev: any) => {
-            const isExist = prev.some(
-              (item: IMessage) => item._id === newMessage?._id
-            );
-            return isExist ? prev : [...prev, newMessage];
-          });
+          if (CONTACT_ID === sender._id) {
+            setMessages((prev) => [...prev, newMessage]);
+          }
           setContacts((prev: any) => {
             return prev.map((contact: IUser) => {
               if (contact._id === sender._id) {
@@ -471,7 +468,7 @@ const HomePage = () => {
 
         {currentContact?._id && (
           <div className="w-full relative">
-            <TopChat />
+            <TopChat messages={messages} />
             <Chat
               messageForm={messageForm}
               onSubmitMessage={onSubmitMessage}
@@ -493,9 +490,9 @@ export default HomePage;
 interface GetSocketType {
   receiver: IUser;
   sender: IUser;
-  newMessage?: IMessage | null;
-  updatedMessage?: IMessage | null;
-  deletedMessage?: IMessage | null;
-  filteredMessages?: IMessage[];
+  newMessage: IMessage;
+  updatedMessage: IMessage;
+  deletedMessage: IMessage;
+  filteredMessages: IMessage[];
   message: string;
 }
