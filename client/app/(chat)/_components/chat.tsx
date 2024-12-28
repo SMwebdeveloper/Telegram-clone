@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UploadDropzone } from "@/lib/uploadthing";
+import { useSession } from "next-auth/react";
 
 interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
@@ -50,9 +51,17 @@ const Chat: FC<Props> = ({
   const { resolvedTheme } = useTheme();
   const scrollRef = useRef<HTMLFormElement | null>(null);
   const { loadMessages } = useLoading();
-  const { editMessage, setEditMessage } = useCurrentContact();
+  const { data: session } = useSession();
+  const { editMessage, setEditMessage, currentContact } = useCurrentContact();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const filteredMessages = messages.filter(
+    (message) =>
+      (message.sender._id === session?.currentUser?._id &&
+        message.receiver._id === currentContact?._id) ||
+      (message.sender._id === currentContact?._id &&
+        message.receiver._id === session?.currentUser?._id)
+  );
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     onReadMessages();
@@ -84,7 +93,7 @@ const Chat: FC<Props> = ({
       {/* Loading */}
       {loadMessages && <ChatLoading />}
       {/* Messages */}
-      {messages.map((message, index) => (
+      {filteredMessages.map((message, index) => (
         <MessageCard
           message={message}
           key={index}
@@ -93,7 +102,7 @@ const Chat: FC<Props> = ({
         />
       ))}
       {/* Start conversation */}
-      {messages.length === 0 && (
+      {filteredMessages.length === 0 && (
         <div className="w-full h-[88vh] flex items-center justify-center">
           <div
             className="text-[100px] cursor-pointer"

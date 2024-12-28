@@ -1,15 +1,30 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import { signIn } from "next-auth/react";
+import React, { useState } from "react";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 
 const Social = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const onSignIn = async (provider: string) => {
+    setIsLoading(true);
+    await signIn(provider, { callbackUrl: "/" });
+  };
   return (
     <div className="grid grid-cols-2 w-full gap-2">
-      <Button variant={"outline"}>
+      <Button
+        variant={"outline"}
+        onClick={() => onSignIn("google")}
+        disabled={isLoading}
+      >
         <span>Sign up with google</span>
         <FaGoogle />
       </Button>
-      <Button variant={"outline"}>
+      <Button
+        variant={"outline"}
+        onClick={() => onSignIn("github")}
+        disabled={isLoading}
+      >
         <span>Sign up with github</span>
         <FaGithub />
       </Button>

@@ -35,10 +35,7 @@ const HomePage = () => {
   const { playSound } = useAudio();
 
   const router = useRouter();
-  const searchParams = useSearchParams();
   const socket = useRef<ReturnType<typeof io> | null>(null);
-
-  const CONTACT_ID = searchParams.get("chat");
 
   const contactForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -128,8 +125,8 @@ const HomePage = () => {
       socket.current?.on(
         "getNewMessage",
         ({ newMessage, sender, receiver }: GetSocketType) => {
-          setTyping("");
-          if (CONTACT_ID === sender._id) {
+          setTyping({ message: "", sender: null });
+          if (currentContact?._id === newMessage?.sender._id) {
             setMessages((prev) => [...prev, newMessage]);
           }
           setContacts((prev: any) => {
@@ -140,7 +137,7 @@ const HomePage = () => {
                   lastMessage: {
                     ...newMessage,
                     status:
-                      CONTACT_ID === sender._id
+                      currentContact?._id === sender._id
                         ? CONST.READ
                         : newMessage?.status,
                   },
@@ -171,7 +168,7 @@ const HomePage = () => {
       socket.current?.on(
         "getUpdateMessage",
         ({ updatedMessage, sender, receiver }: GetSocketType) => {
-          setTyping("");
+          setTyping({ message: "", sender: null });
           setMessages((prev: any) =>
             prev.map((item: any) =>
               item._id === updatedMessage?._id
@@ -224,12 +221,12 @@ const HomePage = () => {
         }
       );
       socket.current?.on("getTyping", ({ message, sender }: GetSocketType) => {
-        if (CONTACT_ID === sender._id) {
-          setTyping(message);
+        if (currentContact?._id === sender._id) {
+          setTyping({ sender, message });
         }
       });
     }
-  }, [session?.currentUser, socket, CONTACT_ID]);
+  }, [session?.currentUser, socket, currentContact?._id]);
 
   useEffect(() => {
     if (currentContact?._id) {

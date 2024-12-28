@@ -164,7 +164,7 @@ const Settings = () => {
                 className="object-cover"
               />
               <AvatarFallback className="text-6xl uppercase font-spaceGrotesk">
-                SB
+                {session?.currentUser?.email.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <UploadButton
