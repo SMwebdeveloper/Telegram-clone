@@ -46,7 +46,7 @@ const ContactLists: FC<Props> = ({ contacts }) => {
     return (
       <div
         className={cn(
-          "flex justify-between items-center cursor-pointer hover:bg-secondary/50 p-2",
+          "flex justify-between items-center cursor-pointer hover:bg-secondary/50 md:p-2",
           currentContact?._id === contact?._id && "bg-secondary/50"
         )}
         onClick={onChat}
@@ -67,7 +67,7 @@ const ContactLists: FC<Props> = ({ contacts }) => {
               <div className="size-3 bg-green-500 absolute rounded-full bottom-0 right-0 !z-40"></div>
             )}
           </div>
-          <div>
+          <div className="max-md:hidden">
             <h2 className="line-clamp-1 text-sm">
               {contact?.email?.length > 20
                 ? `${contact?.email?.substring(0, 20)}...`
@@ -121,7 +121,7 @@ const ContactLists: FC<Props> = ({ contacts }) => {
           </div>
         </div>
 
-        <div className="self-end">
+        <div className="self-end max-md:hidden">
           <p className="text-xs text-muted-foreground">
             {contact?.lastMessage &&
               format(contact?.lastMessage?.updatedAt, "hh:mm a")}
@@ -133,9 +133,9 @@ const ContactLists: FC<Props> = ({ contacts }) => {
   return (
     <>
       {/* Top bar */}{" "}
-      <div className="flex items-center bg-background pl-2 sticky top-0 z-50">
+      <div className="flex items-center bg-background md:pl-2 sticky top-0 z-50">
         <Settings />
-        <div className="m-2 w-full">
+        <div className="m-2 w-full max-md:hidden">
           <Input
             className="bg-secondary"
             value={query}
@@ -146,15 +146,17 @@ const ContactLists: FC<Props> = ({ contacts }) => {
         </div>
       </div>
       {/* Contacts */}
-      {filteredContacts?.length === 0 ? (
-        <div className="w-full h-[95vh] flex justify-center items-center text-center text-muted-foreground">
-          <p>Contact list is empty</p>
-        </div>
-      ) : (
-        filteredContacts?.map((contact) => (
-          <div key={contact._id}>{renderContact(contact)}</div>
-        ))
-      )}
+      <div className="max-md:mt-2">
+        {filteredContacts?.length === 0 ? (
+          <div className="w-full h-[95vh] flex justify-center items-center text-center text-muted-foreground">
+            <p>Contact list is empty</p>
+          </div>
+        ) : (
+          filteredContacts?.map((contact) => (
+            <div key={contact._id}>{renderContact(contact)}</div>
+          ))
+        )}
+      </div>
     </>
   );
 };

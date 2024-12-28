@@ -305,6 +305,9 @@ const HomePage = () => {
         receiver: data.receiver,
         sender: data.sender,
       });
+      if (!data.sender.muted) {
+        playSound(data.sender.sendingSound);
+      }
     } catch {
       toast({ description: "Cannot send message", variant: "destructive" });
     } finally {
@@ -449,7 +452,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="w-80 h-screen border-r fixed inset-0 z-50">
+      <div className="w-80 max-md:w-16 h-screen border-r fixed inset-0 z-50">
         {isLoading && (
           <div className="w-full h-[95vh] flex justify-center items-center">
             <Loader2 size={50} className="animate-spin" />
@@ -458,7 +461,7 @@ const HomePage = () => {
 
         {!isLoading && <ContactList contacts={contacts} />}
       </div>
-      <div className="pl-80 w-full">
+      <div className="max-md:pl-16 pl-80 w-full">
         {!currentContact?._id && (
           <AddContact
             contactForm={contactForm}
