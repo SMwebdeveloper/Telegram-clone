@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import ContactList from "./_components/contact-lists";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AddContact from "./_components/add-contact";
 import { useCurrentContact } from "@/hooks/use-current";
@@ -27,7 +27,8 @@ const HomePage = () => {
   const [contacts, setContacts] = useState<IUser[]>([]);
   const [messages, setMessages] = useState<IMessage[]>([]);
 
-  const { setCreating, setLoading, isLoading, setLoadMessages } = useLoading();
+  const { setCreating, setLoading, isLoading, setLoadMessages, setTyping } =
+    useLoading();
   const { currentContact, editMessage, setEditMessage } = useCurrentContact();
   const { data: session } = useSession();
   const { setOnlineUsers } = useAuth();
@@ -127,6 +128,7 @@ const HomePage = () => {
       socket.current?.on(
         "getNewMessage",
         ({ newMessage, sender, receiver }: GetSocketType) => {
+          setTyping("");
           setMessages((prev: any) => {
             const isExist = prev.some(
               (item: IMessage) => item._id === newMessage?._id
@@ -172,6 +174,7 @@ const HomePage = () => {
       socket.current?.on(
         "getUpdateMessage",
         ({ updatedMessage, sender, receiver }: GetSocketType) => {
+          setTyping("");
           setMessages((prev: any) =>
             prev.map((item: any) =>
               item._id === updatedMessage?._id
@@ -223,6 +226,11 @@ const HomePage = () => {
           );
         }
       );
+      socket.current?.on("getTyping", ({ message, sender }: GetSocketType) => {
+        if (CONTACT_ID === sender._id) {
+          setTyping(message);
+        }
+      });
     }
   }, [session?.currentUser, socket, CONTACT_ID]);
 
@@ -434,6 +442,13 @@ const HomePage = () => {
       toast({ description: "Cannot delete message", variant: "destructive" });
     }
   };
+  const onTyping = (e: ChangeEvent<HTMLInputElement>) => {
+    socket.current?.emit("typing", {
+      receiver: currentContact,
+      sender: session?.currentUser,
+      message: e.target.value,
+    });
+  };
 
   return (
     <>
@@ -464,6 +479,7 @@ const HomePage = () => {
               onReadMessages={onReadMessages}
               onReaction={onReaction}
               onDeletedMessage={onDeletedMessage}
+              onTyping={onTyping}
             />
           </div>
         )}
@@ -481,4 +497,5 @@ interface GetSocketType {
   updatedMessage?: IMessage | null;
   deletedMessage?: IMessage | null;
   filteredMessages?: IMessage[];
+  message: string;
 }

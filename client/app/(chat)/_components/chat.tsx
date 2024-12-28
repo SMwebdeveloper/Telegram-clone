@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { messageSchema } from "@/lib/validation";
 import { Paperclip, Send, Smile } from "lucide-react";
-import { FC, useEffect, useRef } from "react";
+import { ChangeEvent, FC, useEffect, useRef } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import data from "@emoji-mart/data";
@@ -24,6 +24,7 @@ interface Props {
   messageForm: UseFormReturn<z.infer<typeof messageSchema>>;
   onSubmitMessage: (message: z.infer<typeof messageSchema>) => Promise<void>;
   onReaction: (reaction: string, messageId: string) => Promise<void>;
+  onTyping: (e: ChangeEvent<HTMLInputElement>) => void;
   onDeletedMessage: (messageId: string) => Promise<void>;
   messages: IMessage[];
   onReadMessages: () => Promise<void>;
@@ -34,12 +35,13 @@ const Chat: FC<Props> = ({
   messages,
   onReadMessages,
   onReaction,
+  onTyping,
   onDeletedMessage,
 }) => {
   const { resolvedTheme } = useTheme();
   const scrollRef = useRef<HTMLFormElement | null>(null);
   const { loadMessages } = useLoading();
-  const { editMessage } = useCurrentContact();
+  const { editMessage, setEditMessage } = useCurrentContact();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -113,7 +115,11 @@ const Chat: FC<Props> = ({
                     placeholder="Type a message"
                     value={field.value}
                     onBlur={() => field.onBlur()}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      onTyping(e);
+                      if (e.target.value === "") setEditMessage(null);
+                    }}
                     ref={inputRef}
                   />
                 </FormControl>

@@ -10,12 +10,15 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentContact } from "@/hooks/use-current";
+import { useLoading } from "@/hooks/use-loading";
+import { sliceText } from "@/lib/utils";
 import { Settings2 } from "lucide-react";
 import Image from "next/image";
 
 const TopChat = () => {
   const { currentContact } = useCurrentContact();
   const { onlineUsers } = useAuth();
+  const { typing } = useLoading();
 
   return (
     <div className="w-full flex items-center justify-between sticky top-0 z-50 h-[8vh] p-2 border-b bg-background">
@@ -33,30 +36,39 @@ const TopChat = () => {
         <div className="ml-2">
           <h2 className="font-medium text-sm">{currentContact?.email}</h2>
           {/* IsTyping */}
-          {/* <div className='text-xs flex items-center gap-1 text-muted-foreground'>
-						<p className='text-secondary-foreground animate-pulse line-clamp-1'>Hello world</p>
-						<div className='self-end mb-1'>
-							<div className='flex justify-center items-center gap-1'>
-								<div className='w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.3s]'></div>
-								<div className='w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.10s]'></div>
-								<div className='w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.15s]'></div>
-							</div>
-						</div>
-					</div> */}
-          <p className="text-xs">
-            {onlineUsers.some((user) => user._id == currentContact?._id) ? (
-              <>
-                {/* Online */}
-                <span className="text-green-500">●</span> Online
-              </>
-            ) : (
-              <>
-                {/* Offline */}
-                <span className="text-muted-foreground">●</span> Last seen
-                recently
-              </>
-            )}
-          </p>
+          {typing.length > 0 ? (
+            <>
+              <div className="text-xs flex items-center gap-1 text-muted-foreground">
+                <p className="text-secondary-foreground animate-pulse line-clamp-1">
+                  {sliceText(typing, 20)}
+                </p>
+                <div className="self-end mb-1">
+                  <div className="flex justify-center items-center gap-1">
+                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.10s]"></div>
+                    <div className="w-1 h-1 bg-secondary-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xs">
+                {onlineUsers.some((user) => user._id == currentContact?._id) ? (
+                  <>
+                    {/* Online */}
+                    <span className="text-green-500">●</span> Online
+                  </>
+                ) : (
+                  <>
+                    {/* Offline */}
+                    <span className="text-muted-foreground">●</span> Last seen
+                    recently
+                  </>
+                )}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
