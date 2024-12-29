@@ -71,6 +71,21 @@ const TopChat: FC<Props> = ({ messages }) => {
                   )}
                 </p>
               )}
+
+          {!typing.message && (
+            <p className="text-xs">
+              {onlineUsers.some((user) => user._id === currentContact?._id) ? (
+                <>
+                  <span className="text-green-500">●</span> Online
+                </>
+              ) : (
+                <>
+                  <span className="text-muted-foreground">●</span> Last seen
+                  recently
+                </>
+              )}
+            </p>
+          )}
         </div>
       </div>
 
